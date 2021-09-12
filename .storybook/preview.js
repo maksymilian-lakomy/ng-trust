@@ -1,4 +1,5 @@
 import { setCompodocJson } from "@storybook/addon-docs/angular";
+import "!style-loader!css-loader!../projects/ng-trust/src/assets/style.css";
 import docJson from "../documentation.json";
 setCompodocJson(docJson);
 
@@ -11,4 +12,4 @@ export const parameters = {
     },
   },
   docs: { inlineStories: true },
-}
+};

@@ -1,0 +1,27 @@
+{{showFullMenu }}
+<div class="side-menu" #menuEl [@menu]="showFullMenu">
+  <div class="menu-item" tabindex="0" [@menuItem]="showFullMenu">
+    <div class="menu-item__icon-wrapper">
+      <i class="menu-item__icon fi-rr-backpack"></i>
+    </div>
+    <div class="menu-item__text" [@menuItemLabel]="showFullMenu">
+      Kalendarz
+    </div>
+  </div>
+  <div class="menu-item menu-item--active menu-item--full" tabindex="0" [@menuItem]="showFullMenu">
+    <div class="menu-item__icon-wrapper">
+      <i class="menu-item__icon fi-rr-grid"></i>
+    </div>
+    <div class="menu-item__text" [@menuItemLabel]="showFullMenu">
+      Użytkownicy
+    </div>
+  </div>
+  <div class="menu-item" tabindex="0" [@menuItem]="showFullMenu">
+    <div class="menu-item__icon-wrapper">
+      <i class="menu-item__icon fi-rr-layout-fluid"></i>
+    </div>
+    <div class="menu-item__text" [@menuItemLabel]="showFullMenu">
+      Ustawienia
+    </div>
+  </div>
+</div>
