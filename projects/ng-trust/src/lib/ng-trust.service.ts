@@ -1,9 +1,21 @@
 import { Injectable } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class NgTrustService {
+interface Test {
+  xd: number;
+  test: string;
+}
 
-  constructor() { }
+@Injectable()
+export class NgTrustService {
+  private _testt = true;
+
+  constructor() {}
+
+  public test(): void {
+    const test = () => console.log('xd');
+  }
+
+  private xd(): void {}
+
+  public test2(): void {}
 }
