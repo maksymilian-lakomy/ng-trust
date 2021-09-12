@@ -1,7 +1,51 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "cli": {
+    "analytics": "89f8d275-8baa-46ff-bea4-116e61b5d9e1"
+  },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-  }
+    "ng-trust": {
+      "projectType": "library",
+      "root": "projects/ng-trust",
+      "sourceRoot": "projects/ng-trust/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "tsConfig": "projects/ng-trust/tsconfig.lib.json",
+            "project": "projects/ng-trust/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ng-trust/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ng-trust/src/test.ts",
+            "tsConfig": "projects/ng-trust/tsconfig.spec.json",
+            "karmaConfig": "projects/ng-trust/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/ng-trust/tsconfig.lib.json",
+              "projects/ng-trust/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "ng-trust"
 }
