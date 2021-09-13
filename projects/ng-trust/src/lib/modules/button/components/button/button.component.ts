@@ -6,9 +6,6 @@ import {
   Renderer2,
 } from '@angular/core';
 import { ClassBinder } from '../../../../public-services';
-import { fromEvent } from 'rxjs';
-
-import anime from 'animejs';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -29,20 +26,5 @@ export class ButtonComponent implements OnInit {
   public ngOnInit(): void {
     this.classBinder.bind('button');
     this.classBinder.bind('button--fill');
-
-    fromEvent(this.elementRef.nativeElement, 'click').subscribe(() => {
-      const element = this.renderer.createElement('div');
-      this.renderer.addClass(element, 'click-effect');
-
-      this.renderer.appendChild(this.elementRef.nativeElement, element);
-
-      anime({
-        targets: element,
-        scale: ['1', '5'],
-        opacity: [0.25, 0],
-        easing: 'easeOutQuad',
-        duration: 500,
-      });
-    });
   }
 }
