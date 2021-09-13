@@ -11,12 +11,15 @@ export default {
       imports: [ClickEffectModule],
     }),
   ],
+  args: {
+    test: 'Przejdź dalej',
+  },
 } as Meta;
 
 const template: Story<ButtonComponent> = (args: ButtonComponent) => ({
   props: args,
   template: `
-    <button trust-button trustClickEffect></button>
+    <button trust-button [fill]="fill" [color]="color" trustClickEffect>{{test}}</button>
   `,
 });
 

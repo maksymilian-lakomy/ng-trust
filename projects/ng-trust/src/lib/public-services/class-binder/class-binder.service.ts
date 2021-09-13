@@ -1,4 +1,4 @@
-import { ElementRef, Injectable, Renderer2 } from '@angular/core';
+import { ElementRef, Injectable, Renderer2, SimpleChange } from '@angular/core';
 import { WarningsUtils } from '../../utils';
 
 @Injectable()
@@ -28,6 +28,14 @@ export class ClassBinder {
     }
 
     this.renderer.removeClass(this._element, className);
+  }
+
+  public bindByBoolean(className: string, state: boolean): void {
+    console.log(state);
+
+    state
+      ? !this.hasClass(className) && this.bind(className)
+      : this.hasClass(className) && this.unbind(className);
   }
 
   private hasClass(className: string): boolean {
