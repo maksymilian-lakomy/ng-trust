@@ -199,7 +199,7 @@
         },
         {
             "name": "InteractionService",
-            "id": "injectable-InteractionService-64b3c90bcfc466d58f2bfead2a16d00f",
+            "id": "injectable-InteractionService-6618964549ab550e2b9e27a4f5202a1f",
             "file": "projects/ng-trust/src/lib/public-services/interaction/interaction.service.ts",
             "properties": [],
             "methods": [
@@ -247,7 +247,7 @@
                     "optional": false,
                     "returnType": "Observable<boolean>",
                     "typeParameters": [],
-                    "line": 14,
+                    "line": 21,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -270,7 +270,7 @@
             "deprecationMessage": "",
             "description": "",
             "rawdescription": "\n",
-            "sourceCode": "import { Injectable } from '@angular/core';\nimport { fromEvent, merge, Observable } from 'rxjs';\nimport { mapTo, startWith } from 'rxjs/operators';\n\n@Injectable()\nexport class InteractionService {\n  public observeFocusIn(element: HTMLElement): Observable<boolean> {\n    return merge(\n      fromEvent(element, 'focusin').pipe(mapTo(true)),\n      fromEvent(element, 'focusout').pipe(mapTo(false))\n    ).pipe(startWith(false));\n  }\n\n  public observeMouseOver(element: HTMLElement): Observable<boolean> {\n    return merge(\n      fromEvent(element, 'mouseenter').pipe(mapTo(true)),\n      fromEvent(element, 'mouseleave').pipe(mapTo(false))\n    ).pipe(startWith(false));\n  }\n}\n",
+            "sourceCode": "import { Injectable } from '@angular/core';\nimport { fromEvent, merge, Observable } from 'rxjs';\nimport { map, mapTo, startWith } from 'rxjs/operators';\n\n@Injectable()\nexport class InteractionService {\n  public observeFocusIn(element: HTMLElement): Observable<boolean> {\n    return merge(\n      fromEvent(element, 'focusin').pipe(mapTo(true)),\n      fromEvent(element, 'focusout').pipe(\n        map((event) => {\n          const focusEvent = event as FocusEvent;\n          const relatedTarget = focusEvent.relatedTarget as HTMLElement | null;\n\n          return element.contains(relatedTarget);\n        })\n      )\n    ).pipe(startWith(false));\n  }\n\n  public observeMouseOver(element: HTMLElement): Observable<boolean> {\n    return merge(\n      fromEvent(element, 'mouseenter').pipe(mapTo(true)),\n      fromEvent(element, 'mouseleave').pipe(mapTo(false))\n    ).pipe(startWith(false));\n  }\n}\n",
             "type": "injectable"
         },
         {
@@ -908,7 +908,7 @@
         },
         {
             "name": "SideMenuComponent",
-            "id": "component-SideMenuComponent-ce7488a2229b46645e4a442f86f2cdce",
+            "id": "component-SideMenuComponent-28e213239ffb4b4ad63408cedf031c2f",
             "file": "projects/ng-trust/src/lib/modules/side-menu/components/side-menu/side-menu.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -943,7 +943,7 @@
                     "type": "",
                     "optional": false,
                     "description": "",
-                    "line": 32,
+                    "line": 110,
                     "modifierKind": [
                         120
                     ]
@@ -955,7 +955,7 @@
                     "type": "ElementRef<HTMLElement>",
                     "optional": false,
                     "description": "",
-                    "line": 26,
+                    "line": 104,
                     "decorators": [
                         {
                             "name": "ViewChild",
@@ -974,7 +974,7 @@
                     "type": "",
                     "optional": false,
                     "description": "",
-                    "line": 30,
+                    "line": 108,
                     "modifierKind": [
                         122
                     ]
@@ -987,7 +987,7 @@
                     "type": "",
                     "optional": false,
                     "description": "",
-                    "line": 28,
+                    "line": 106,
                     "modifierKind": [
                         122
                     ]
@@ -1000,7 +1000,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 62,
+                    "line": 140,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1013,7 +1013,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 43,
+                    "line": 121,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1026,7 +1026,7 @@
                     "optional": false,
                     "returnType": "Observable<boolean>",
                     "typeParameters": [],
-                    "line": 67,
+                    "line": 145,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1041,11 +1041,11 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import {\n  ChangeDetectionStrategy,\n  ChangeDetectorRef,\n  Component,\n  ElementRef,\n  OnDestroy,\n  OnInit,\n  Renderer2,\n  ViewChild,\n} from '@angular/core';\nimport { ClassBinder, InteractionService } from '../../../../public-services';\nimport { TouchRecognizer } from '../../../device/services/touch-recognizer.service';\nimport { combineLatest, Observable, Subject } from 'rxjs';\nimport { map, takeUntil } from 'rxjs/operators';\n\n@Component({\n  selector: 'lib-side-menu',\n  templateUrl: './side-menu.component.html',\n  styleUrls: ['./side-menu.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  providers: [ClassBinder, InteractionService],\n  animations: [],\n})\nexport class SideMenuComponent implements OnInit, OnDestroy {\n  @ViewChild('menuEl', { static: true })\n  public menuElementRef!: ElementRef<HTMLElement>;\n\n  public touchScreen$ = this.touchRecognizer.touchScreen$;\n\n  public showFullMenu = false;\n\n  private _completeSubject = new Subject<void>();\n\n  constructor(\n    private classBinder: ClassBinder,\n    private interaction: InteractionService,\n    private touchRecognizer: TouchRecognizer,\n    private changeDetector: ChangeDetectorRef,\n    private elementRef: ElementRef<HTMLElement>,\n    private renderer2: Renderer2\n  ) {}\n\n  public ngOnInit(): void {\n    this.classBinder.bind('side-menu');\n\n    this.touchScreen$.subscribe(() => {});\n\n    this.renderer2.setAttribute(\n      this.elementRef.nativeElement,\n      'role',\n      'side-menu'\n    );\n\n    this.observeFullMenuDisplay()\n      .pipe(takeUntil(this._completeSubject))\n      .subscribe((value) => {\n        this.showFullMenu = true;\n        this.changeDetector.markForCheck();\n      });\n  }\n\n  public ngOnDestroy(): void {\n    this._completeSubject.next();\n    this._completeSubject.complete();\n  }\n\n  private observeFullMenuDisplay(): Observable<boolean> {\n    return combineLatest([\n      this.interaction.observeMouseOver(this.menuElementRef.nativeElement),\n      this.interaction.observeFocusIn(this.menuElementRef.nativeElement),\n    ]).pipe(map(([focusIn, mouseOver]) => focusIn || mouseOver));\n  }\n}\n",
+            "sourceCode": "import {\n  ChangeDetectionStrategy,\n  ChangeDetectorRef,\n  Component,\n  ElementRef,\n  OnDestroy,\n  OnInit,\n  Renderer2,\n  ViewChild,\n} from '@angular/core';\nimport { ClassBinder, InteractionService } from '../../../../public-services';\nimport { TouchRecognizer } from '../../../device/services/touch-recognizer.service';\nimport { combineLatest, Observable, Subject } from 'rxjs';\nimport { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';\nimport {\n  animate,\n  animateChild,\n  group,\n  query,\n  state,\n  style,\n  transition,\n  trigger,\n} from '@angular/animations';\n\n@Component({\n  selector: 'lib-side-menu',\n  templateUrl: './side-menu.component.html',\n  styleUrls: ['./side-menu.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  providers: [ClassBinder, InteractionService],\n  animations: [\n    trigger('menu', [\n      state(\n        'true',\n        style({\n          width: '200px',\n          paddingRight: '0px',\n        })\n      ),\n      state(\n        'false',\n        style({\n          width: '56px',\n        })\n      ),\n      transition('false => true', [\n        group([\n          query(\n            ':self',\n            animate('200ms', style({ width: '200px', paddingRight: '0px' }))\n          ),\n          query('@*', animateChild()),\n        ]),\n      ]),\n      transition('true => false', [\n        group([\n          query(\n            ':self',\n            animate('200ms', style({ width: '56px', paddingRight: '16px' }))\n          ),\n          query('@*', animateChild()),\n        ]),\n      ]),\n    ]),\n    trigger('menuItem', [\n      state(\n        'true',\n        style({\n          borderTopRightRadius: 0,\n          borderBottomRightRadius: 0,\n        })\n      ),\n      state(\n        'false',\n        style({\n          borderTopRightRadius: '16px',\n          borderBottomRightRadius: '16px',\n        })\n      ),\n      transition('* => *', animate('200ms')),\n    ]),\n    trigger('menuItemLabel', [\n      state(\n        'true',\n        style({\n          width: '100%',\n          opacity: 1,\n        })\n      ),\n      state(\n        'false',\n        style({\n          width: '0%',\n          opacity: 0,\n        })\n      ),\n      transition('* => *', animate('200ms')),\n    ]),\n  ],\n})\nexport class SideMenuComponent implements OnInit, OnDestroy {\n  @ViewChild('menuEl', { static: true })\n  public menuElementRef!: ElementRef<HTMLElement>;\n\n  public touchScreen$ = this.touchRecognizer.touchScreen$;\n\n  public showFullMenu = false;\n\n  private _completeSubject = new Subject<void>();\n\n  constructor(\n    private classBinder: ClassBinder,\n    private interaction: InteractionService,\n    private touchRecognizer: TouchRecognizer,\n    private changeDetector: ChangeDetectorRef,\n    private elementRef: ElementRef<HTMLElement>,\n    private renderer2: Renderer2\n  ) {}\n\n  public ngOnInit(): void {\n    this.classBinder.bind('side-menu');\n\n    this.touchScreen$.subscribe(() => {});\n\n    this.renderer2.setAttribute(\n      this.elementRef.nativeElement,\n      'role',\n      'side-menu'\n    );\n\n    this.observeFullMenuDisplay()\n      .pipe(takeUntil(this._completeSubject), distinctUntilChanged())\n      .subscribe((value) => {\n        this.showFullMenu = value;\n        this.changeDetector.markForCheck();\n      });\n  }\n\n  public ngOnDestroy(): void {\n    this._completeSubject.next();\n    this._completeSubject.complete();\n  }\n\n  private observeFullMenuDisplay(): Observable<boolean> {\n    return combineLatest([\n      this.interaction.observeMouseOver(this.menuElementRef.nativeElement),\n      this.interaction.observeFocusIn(this.menuElementRef.nativeElement),\n    ]).pipe(map(([focusIn, mouseOver]) => focusIn || mouseOver));\n  }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": [
                 {
-                    "data": "@import url('https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css');\r\n\r\n:host.side-menu {\r\n\r\n}\r\n\r\n.side-menu {\r\n  display: flex;\r\n  flex-direction: column;\r\n  height: 100vh;\r\n  width: 56px;\r\n  color: var(--palette-5);\r\n  background-color: var(--palette-9);\r\n  padding: 16px;\r\n}\r\n\r\n.menu-item {\r\n  display: flex;\r\n  height: 56px;\r\n  width: 100%;\r\n  justify-content: left;\r\n  align-items: center;\r\n  border-radius: 16px;\r\n  cursor: pointer;\r\n\r\n  &__icon-wrapper {\r\n    width: 56px;\r\n    height: 56px;\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n  }\r\n\r\n  &__text {\r\n    position: absolute;\r\n    opacity: 0;\r\n  }\r\n\r\n  &__icon {\r\n    font-size: 20px;\r\n    line-height: 0;\r\n    display: inline-block;\r\n  }\r\n\r\n  &--active {\r\n    background-color: var(--palette-8);\r\n  }\r\n\r\n  &:not(:last-child) {\r\n    margin-bottom: 16px;\r\n  }\r\n\r\n  &:not(.menu-item--active) {\r\n    &:hover {\r\n      background-color: var(--palette-8);\r\n    }\r\n  }\r\n}\r\n",
+                    "data": "@import url('https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css');\r\n\r\n:host.side-menu {\r\n\r\n}\r\n\r\n.side-menu {\r\n  display: flex;\r\n  flex-direction: column;\r\n  height: 100vh;\r\n  width: 56px;\r\n  color: var(--palette-5);\r\n  background-color: var(--palette-9);\r\n  padding: 16px;\r\n}\r\n\r\n.menu-item {\r\n  display: flex;\r\n  height: 56px;\r\n  width: 100%;\r\n  justify-content: left;\r\n  align-items: center;\r\n  border-radius: 16px;\r\n  cursor: pointer;\r\n  transition: background-color 200ms ease-in-out;\r\n\r\n  &__icon-wrapper {\r\n    width: 56px;\r\n    height: 56px;\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n    flex-shrink: 0;\r\n  }\r\n\r\n\r\n  &__icon {\r\n    font-size: 20px;\r\n    line-height: 0;\r\n    display: inline-block;\r\n  }\r\n\r\n  &__text {\r\n    overflow: hidden;\r\n  }\r\n\r\n  &--active {\r\n    background-color: var(--palette-8);\r\n  }\r\n\r\n  &:not(:last-child) {\r\n    margin-bottom: 16px;\r\n  }\r\n\r\n  &:not(.menu-item--active) {\r\n    &:hover {\r\n      background-color: var(--palette-8);\r\n    }\r\n  }\r\n}\r\n",
                     "styleUrl": "./side-menu.component.scss"
                 }
             ],
@@ -1093,7 +1093,7 @@
                         "deprecationMessage": ""
                     }
                 ],
-                "line": 32,
+                "line": 110,
                 "jsdoctags": [
                     {
                         "name": "classBinder",
@@ -1155,7 +1155,7 @@
                 "OnInit",
                 "OnDestroy"
             ],
-            "templateData": "<div class=\"side-menu\" #menuEl>\n  <div class=\"menu-item\" tabindex=\"0\">\n    <div class=\"menu-item__icon-wrapper\">\n      <i class=\"menu-item__icon fi-rr-backpack\"></i>\n    </div>\n    <div class=\"menu-item__text\">\n      Kalendarz\n    </div>\n  </div>\n  <div class=\"menu-item menu-item--active menu-item--full\" tabindex=\"0\">\n    <div class=\"menu-item__icon-wrapper\">\n      <i class=\"menu-item__icon fi-rr-grid\"></i>\n    </div>\n    <div class=\"menu-item__text\" role=\"menu-item-label\">\n      Użytkownicy\n    </div>\n  </div>\n  <div class=\"menu-item\" tabindex=\"0\">\n    <div class=\"menu-item__icon-wrapper\">\n      <i class=\"menu-item__icon fi-rr-layout-fluid\"></i>\n    </div>\n    <div class=\"menu-item__text\">\n      Ustawienia\n    </div>\n  </div>\n</div>\n"
+            "templateData": "{{showFullMenu }}\n<div class=\"side-menu\" #menuEl [@menu]=\"showFullMenu\">\n  <div class=\"menu-item\" tabindex=\"0\" [@menuItem]=\"showFullMenu\">\n    <div class=\"menu-item__icon-wrapper\">\n      <i class=\"menu-item__icon fi-rr-backpack\"></i>\n    </div>\n    <div class=\"menu-item__text\" [@menuItemLabel]=\"showFullMenu\">\n      Kalendarz\n    </div>\n  </div>\n  <div class=\"menu-item menu-item--active menu-item--full\" tabindex=\"0\" [@menuItem]=\"showFullMenu\">\n    <div class=\"menu-item__icon-wrapper\">\n      <i class=\"menu-item__icon fi-rr-grid\"></i>\n    </div>\n    <div class=\"menu-item__text\" [@menuItemLabel]=\"showFullMenu\">\n      Użytkownicy\n    </div>\n  </div>\n  <div class=\"menu-item\" tabindex=\"0\" [@menuItem]=\"showFullMenu\">\n    <div class=\"menu-item__icon-wrapper\">\n      <i class=\"menu-item__icon fi-rr-layout-fluid\"></i>\n    </div>\n    <div class=\"menu-item__text\" [@menuItemLabel]=\"showFullMenu\">\n      Ustawienia\n    </div>\n  </div>\n</div>\n"
         }
     ],
     "modules": [

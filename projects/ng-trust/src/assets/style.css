@@ -1,4 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
 :root {
+  --success-1: #66CC9C;
+  --warning-1: #FFC486;
+  --error-1: #E06464;
   --palette-1: #f8f9fa;
   --palette-2: #e9ecef;
   --palette-3: #dee2e6;
@@ -8,4 +13,8 @@
   --palette-7: #495057;
   --palette-8: #343a40;
   --palette-9: #212529;
+}
+
+body {
+  font-family: 'Ubuntu', sans-serif;
 }
