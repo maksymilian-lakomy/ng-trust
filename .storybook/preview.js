@@ -11,5 +11,8 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  darkMode: {
+    current: "dark",
+  },
   docs: { inlineStories: true },
 };

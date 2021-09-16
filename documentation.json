@@ -2,6 +2,79 @@
     "pipes": [],
     "interfaces": [
         {
+            "name": "ExtendableElements",
+            "id": "interface-ExtendableElements-51127f23be380814590cecae3edbb147",
+            "file": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "import {\n  AfterViewInit,\n  ChangeDetectionStrategy,\n  Component,\n  ElementRef,\n  Input,\n  ViewChild,\n} from '@angular/core';\nimport anime, { AnimeAnimParams, AnimeTimelineInstance } from 'animejs';\n\ntype ExtensionState = 'MINIMIZED' | 'PREVIEW' | 'FULL';\n\ninterface ExtendableElements {\n  parentElement: HTMLElement;\n  wrapperElement: HTMLElement;\n  headerElement: HTMLElement;\n  contentElement: HTMLElement;\n}\n\ninterface PreviewConfiguration {\n  height: string;\n}\n\n@Component({\n  selector: 'trust-extendable-menu',\n  templateUrl: './extendable-menu.component.html',\n  styleUrls: ['./extendable-menu.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class ExtendableMenuComponent implements AfterViewInit {\n  @ViewChild('wrapperEl') public wrapperEl!: ElementRef<HTMLElement>;\n  @ViewChild('headerEl') public headerEl!: ElementRef<HTMLElement>;\n  @ViewChild('contentEl') public contentEl!: ElementRef<HTMLElement>;\n\n  public get elements(): ExtendableElements {\n    const parentElement = this.wrapperEl.nativeElement.parentElement;\n\n    if (!parentElement) {\n      throw new Error('There is no parent element!');\n    }\n\n    return {\n      parentElement,\n      wrapperElement: this.wrapperEl.nativeElement,\n      headerElement: this.headerEl.nativeElement,\n      contentElement: this.contentEl.nativeElement,\n    };\n  }\n\n  @Input() public state: ExtensionState = 'PREVIEW';\n\n  @Input() public preview: PreviewConfiguration = {\n    height: '120px',\n  };\n\n  constructor() {}\n\n  public ngAfterViewInit(): void {\n    this.transitionFromPreviewToFull(false);\n  }\n\n  private changeStateToMinimized(immediately: boolean = false): void {\n    const {} = this.elements;\n  }\n\n  private transitionFromPreviewToFull(immediately: boolean = false): void {\n    const { parentElement, wrapperElement, headerElement, contentElement } =\n      this.elements;\n\n    headerElement.style.display = 'none';\n\n    const parentDOMRect = parentElement.getBoundingClientRect();\n    const wrapperDOMRect = wrapperElement.getBoundingClientRect();\n    const contentDOMRect = contentElement.getBoundingClientRect();\n\n    headerElement.style.display = 'block';\n\n    const headerDOMRect = headerElement.getBoundingClientRect();\n\n    wrapperElement.style.position = 'absolute';\n    wrapperElement.style.top = '0px';\n\n    const contentTopOffset =\n      contentDOMRect.top - headerDOMRect.height - parentDOMRect.top;\n\n    const timeline = anime.timeline({\n      duration: immediately ? 0 : 1000,\n      easing: 'easeOutQuad',\n    });\n\n    this.addToTimeline(timeline, {\n      targets: wrapperElement,\n    });\n\n    this.addToTimeline(timeline, {\n      targets: headerElement,\n      translateY: ['-100%', '0%'],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: contentElement,\n      top: [`${contentTopOffset}px`, `0px`],\n    });\n  }\n\n  private transitionFromFullToPreview(immediately: boolean = false): void {\n    const { wrapperElement, headerElement, contentElement } = this.elements;\n\n    const headerDOMRect = headerElement.getBoundingClientRect();\n\n    const timeline = anime.timeline({\n      duration: immediately ? 0 : 5000,\n      easing: 'easeOutQuad',\n    });\n\n    this.addToTimeline(timeline, {\n      targets: wrapperElement,\n      height: ['600px', this.preview.height],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: headerElement,\n      translateY: ['0%', '-100%'],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: contentElement,\n      top: ['0px', `${headerDOMRect.height}px`],\n    });\n  }\n\n  private addToTimeline(\n    timeline: AnimeTimelineInstance,\n    params: AnimeAnimParams\n  ): void {\n    timeline.add(params, 0);\n  }\n\n  // public ngOnInit(): void {\n  //   const element = this.wrapperEl.nativeElement;\n  //   const rect = element.getBoundingClientRect();\n  //\n  //   const mouseup$ = fromEvent(window, 'mouseup');\n  //\n  //   let timeline: AnimeTimelineInstance | null = null;\n  //\n  //   let initialY: number | null = null;\n  //\n  //   let progress: number = 0;\n  //\n  //   fromEvent(element, 'mousedown')\n  //     .pipe(\n  //       tap((event) => (initialY = (event as MouseEvent).y)),\n  //       switchMap((event) =>\n  //         merge(\n  //           of(event),\n  //           fromEvent(window, 'mousemove').pipe(takeUntil(mouseup$)),\n  //           mouseup$\n  //         )\n  //       )\n  //     )\n  //     .subscribe((e) => {\n  //       const event = e as MouseEvent;\n  //       event.preventDefault();\n  //\n  //       if (event.type === 'mousedown') {\n  //         progress = timeline?.progress || 0;\n  //         timeline = null;\n  //         timeline = this.createTimeline();\n  //       }\n  //\n  //       const y = event.y - (initialY || 0);\n  //       const yPercentage = (y - rect.y) / 550;\n  //\n  //       const yWithProgress = Math.min(yPercentage + progress / 100, 1);\n  //\n  //       console.log(y, yPercentage, yWithProgress);\n  //\n  //       timeline?.seek(yWithProgress * 1000);\n  //       this.updateFunction(yWithProgress * 100);\n  //\n  //       if (event.type === 'mouseup') {\n  //         initialY = null;\n  //       }\n  //     });\n  //\n  //   anime({});\n  // }\n  //\n  // private createTimeline(duration: number = 1000): AnimeTimelineInstance {\n  //   const minimizedHeight = 30;\n  //   const previewHeight = 120;\n  //   const fullHeight = 600;\n  //\n  //   const minimizedDuration = (minimizedHeight / fullHeight) * duration;\n  //   const previewDuration = (previewHeight / fullHeight) * duration;\n  //   const fullDuration =\n  //     ((fullHeight - minimizedHeight - previewHeight) / fullHeight) * duration;\n  //\n  //   const wrapper = this.wrapperEl.nativeElement;\n  //   const header = wrapper.querySelector<HTMLElement>('[role=header]');\n  //   const content = wrapper.querySelector<HTMLElement>('[role=content]');\n  //\n  //   header!.style.display = 'block';\n  //   const headerDOMRect = header!.getBoundingClientRect();\n  //   header!.style.display = 'none';\n  //   const contentDOMRect = content!.getBoundingClientRect();\n  //   const parent = wrapper.parentElement;\n  //   const parentDOMRect = parent!.getBoundingClientRect();\n  //\n  //   const timeline = anime.timeline({\n  //     duration,\n  //     easing: 'linear',\n  //     autoplay: false,\n  //     update: (event) => this.updateFunction(event.progress),\n  //   });\n  //\n  //   timeline.add(\n  //     {\n  //       targets: wrapper,\n  //       top: [\n  //         {\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0px',\n  //           delay: minimizedDuration + previewDuration,\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   timeline.add(\n  //     {\n  //       targets: header,\n  //       translateY: [\n  //         {\n  //           value: '-100%',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0%',\n  //           duration: fullDuration,\n  //           delay: previewDuration + minimizedDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   timeline.add(\n  //     {\n  //       targets: content,\n  //       top: [\n  //         {\n  //           value: '0px',\n  //           delay: minimizedDuration + previewDuration,\n  //         },\n  //         {\n  //           value:\n  //             contentDOMRect.top -\n  //             headerDOMRect.height -\n  //             parentDOMRect.top +\n  //             'px',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0px',\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //       height: [\n  //         {\n  //           value: '40px',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '120px',\n  //           duration: minimizedDuration + previewDuration,\n  //         },\n  //         {\n  //           value: '600px',\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   return timeline;\n  // }\n  //\n  // private updateFunction(progress: number): void {\n  //   console.log('progress', progress);\n  //\n  //   const wrapper = this.wrapperEl.nativeElement;\n  //   const header = wrapper.querySelector<HTMLElement>('[role=header]');\n  //\n  //   const duration = 1000;\n  //\n  //   const minimizedHeight = 30;\n  //   const previewHeight = 120;\n  //   const fullHeight = 600;\n  //\n  //   const minimizedDuration = (minimizedHeight / fullHeight) * duration;\n  //   const previewDuration = (previewHeight / fullHeight) * duration;\n  //\n  //   wrapper!.style.position =\n  //     (progress / 100) * duration > minimizedDuration + previewDuration\n  //       ? 'absolute'\n  //       : 'relative';\n  //\n  //   header!.style.display =\n  //     (progress / 100) * duration > minimizedDuration + previewDuration\n  //       ? 'block'\n  //       : 'none';\n  // }\n}\n",
+            "properties": [
+                {
+                    "name": "contentElement",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "HTMLElement",
+                    "optional": false,
+                    "description": "",
+                    "line": 17
+                },
+                {
+                    "name": "headerElement",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "HTMLElement",
+                    "optional": false,
+                    "description": "",
+                    "line": 16
+                },
+                {
+                    "name": "parentElement",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "HTMLElement",
+                    "optional": false,
+                    "description": "",
+                    "line": 14
+                },
+                {
+                    "name": "wrapperElement",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "HTMLElement",
+                    "optional": false,
+                    "description": "",
+                    "line": 15
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 163,
+            "methods": []
+        },
+        {
+            "name": "PreviewConfiguration",
+            "id": "interface-PreviewConfiguration-51127f23be380814590cecae3edbb147",
+            "file": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "import {\n  AfterViewInit,\n  ChangeDetectionStrategy,\n  Component,\n  ElementRef,\n  Input,\n  ViewChild,\n} from '@angular/core';\nimport anime, { AnimeAnimParams, AnimeTimelineInstance } from 'animejs';\n\ntype ExtensionState = 'MINIMIZED' | 'PREVIEW' | 'FULL';\n\ninterface ExtendableElements {\n  parentElement: HTMLElement;\n  wrapperElement: HTMLElement;\n  headerElement: HTMLElement;\n  contentElement: HTMLElement;\n}\n\ninterface PreviewConfiguration {\n  height: string;\n}\n\n@Component({\n  selector: 'trust-extendable-menu',\n  templateUrl: './extendable-menu.component.html',\n  styleUrls: ['./extendable-menu.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class ExtendableMenuComponent implements AfterViewInit {\n  @ViewChild('wrapperEl') public wrapperEl!: ElementRef<HTMLElement>;\n  @ViewChild('headerEl') public headerEl!: ElementRef<HTMLElement>;\n  @ViewChild('contentEl') public contentEl!: ElementRef<HTMLElement>;\n\n  public get elements(): ExtendableElements {\n    const parentElement = this.wrapperEl.nativeElement.parentElement;\n\n    if (!parentElement) {\n      throw new Error('There is no parent element!');\n    }\n\n    return {\n      parentElement,\n      wrapperElement: this.wrapperEl.nativeElement,\n      headerElement: this.headerEl.nativeElement,\n      contentElement: this.contentEl.nativeElement,\n    };\n  }\n\n  @Input() public state: ExtensionState = 'PREVIEW';\n\n  @Input() public preview: PreviewConfiguration = {\n    height: '120px',\n  };\n\n  constructor() {}\n\n  public ngAfterViewInit(): void {\n    this.transitionFromPreviewToFull(false);\n  }\n\n  private changeStateToMinimized(immediately: boolean = false): void {\n    const {} = this.elements;\n  }\n\n  private transitionFromPreviewToFull(immediately: boolean = false): void {\n    const { parentElement, wrapperElement, headerElement, contentElement } =\n      this.elements;\n\n    headerElement.style.display = 'none';\n\n    const parentDOMRect = parentElement.getBoundingClientRect();\n    const wrapperDOMRect = wrapperElement.getBoundingClientRect();\n    const contentDOMRect = contentElement.getBoundingClientRect();\n\n    headerElement.style.display = 'block';\n\n    const headerDOMRect = headerElement.getBoundingClientRect();\n\n    wrapperElement.style.position = 'absolute';\n    wrapperElement.style.top = '0px';\n\n    const contentTopOffset =\n      contentDOMRect.top - headerDOMRect.height - parentDOMRect.top;\n\n    const timeline = anime.timeline({\n      duration: immediately ? 0 : 1000,\n      easing: 'easeOutQuad',\n    });\n\n    this.addToTimeline(timeline, {\n      targets: wrapperElement,\n    });\n\n    this.addToTimeline(timeline, {\n      targets: headerElement,\n      translateY: ['-100%', '0%'],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: contentElement,\n      top: [`${contentTopOffset}px`, `0px`],\n    });\n  }\n\n  private transitionFromFullToPreview(immediately: boolean = false): void {\n    const { wrapperElement, headerElement, contentElement } = this.elements;\n\n    const headerDOMRect = headerElement.getBoundingClientRect();\n\n    const timeline = anime.timeline({\n      duration: immediately ? 0 : 5000,\n      easing: 'easeOutQuad',\n    });\n\n    this.addToTimeline(timeline, {\n      targets: wrapperElement,\n      height: ['600px', this.preview.height],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: headerElement,\n      translateY: ['0%', '-100%'],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: contentElement,\n      top: ['0px', `${headerDOMRect.height}px`],\n    });\n  }\n\n  private addToTimeline(\n    timeline: AnimeTimelineInstance,\n    params: AnimeAnimParams\n  ): void {\n    timeline.add(params, 0);\n  }\n\n  // public ngOnInit(): void {\n  //   const element = this.wrapperEl.nativeElement;\n  //   const rect = element.getBoundingClientRect();\n  //\n  //   const mouseup$ = fromEvent(window, 'mouseup');\n  //\n  //   let timeline: AnimeTimelineInstance | null = null;\n  //\n  //   let initialY: number | null = null;\n  //\n  //   let progress: number = 0;\n  //\n  //   fromEvent(element, 'mousedown')\n  //     .pipe(\n  //       tap((event) => (initialY = (event as MouseEvent).y)),\n  //       switchMap((event) =>\n  //         merge(\n  //           of(event),\n  //           fromEvent(window, 'mousemove').pipe(takeUntil(mouseup$)),\n  //           mouseup$\n  //         )\n  //       )\n  //     )\n  //     .subscribe((e) => {\n  //       const event = e as MouseEvent;\n  //       event.preventDefault();\n  //\n  //       if (event.type === 'mousedown') {\n  //         progress = timeline?.progress || 0;\n  //         timeline = null;\n  //         timeline = this.createTimeline();\n  //       }\n  //\n  //       const y = event.y - (initialY || 0);\n  //       const yPercentage = (y - rect.y) / 550;\n  //\n  //       const yWithProgress = Math.min(yPercentage + progress / 100, 1);\n  //\n  //       console.log(y, yPercentage, yWithProgress);\n  //\n  //       timeline?.seek(yWithProgress * 1000);\n  //       this.updateFunction(yWithProgress * 100);\n  //\n  //       if (event.type === 'mouseup') {\n  //         initialY = null;\n  //       }\n  //     });\n  //\n  //   anime({});\n  // }\n  //\n  // private createTimeline(duration: number = 1000): AnimeTimelineInstance {\n  //   const minimizedHeight = 30;\n  //   const previewHeight = 120;\n  //   const fullHeight = 600;\n  //\n  //   const minimizedDuration = (minimizedHeight / fullHeight) * duration;\n  //   const previewDuration = (previewHeight / fullHeight) * duration;\n  //   const fullDuration =\n  //     ((fullHeight - minimizedHeight - previewHeight) / fullHeight) * duration;\n  //\n  //   const wrapper = this.wrapperEl.nativeElement;\n  //   const header = wrapper.querySelector<HTMLElement>('[role=header]');\n  //   const content = wrapper.querySelector<HTMLElement>('[role=content]');\n  //\n  //   header!.style.display = 'block';\n  //   const headerDOMRect = header!.getBoundingClientRect();\n  //   header!.style.display = 'none';\n  //   const contentDOMRect = content!.getBoundingClientRect();\n  //   const parent = wrapper.parentElement;\n  //   const parentDOMRect = parent!.getBoundingClientRect();\n  //\n  //   const timeline = anime.timeline({\n  //     duration,\n  //     easing: 'linear',\n  //     autoplay: false,\n  //     update: (event) => this.updateFunction(event.progress),\n  //   });\n  //\n  //   timeline.add(\n  //     {\n  //       targets: wrapper,\n  //       top: [\n  //         {\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0px',\n  //           delay: minimizedDuration + previewDuration,\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   timeline.add(\n  //     {\n  //       targets: header,\n  //       translateY: [\n  //         {\n  //           value: '-100%',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0%',\n  //           duration: fullDuration,\n  //           delay: previewDuration + minimizedDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   timeline.add(\n  //     {\n  //       targets: content,\n  //       top: [\n  //         {\n  //           value: '0px',\n  //           delay: minimizedDuration + previewDuration,\n  //         },\n  //         {\n  //           value:\n  //             contentDOMRect.top -\n  //             headerDOMRect.height -\n  //             parentDOMRect.top +\n  //             'px',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0px',\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //       height: [\n  //         {\n  //           value: '40px',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '120px',\n  //           duration: minimizedDuration + previewDuration,\n  //         },\n  //         {\n  //           value: '600px',\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   return timeline;\n  // }\n  //\n  // private updateFunction(progress: number): void {\n  //   console.log('progress', progress);\n  //\n  //   const wrapper = this.wrapperEl.nativeElement;\n  //   const header = wrapper.querySelector<HTMLElement>('[role=header]');\n  //\n  //   const duration = 1000;\n  //\n  //   const minimizedHeight = 30;\n  //   const previewHeight = 120;\n  //   const fullHeight = 600;\n  //\n  //   const minimizedDuration = (minimizedHeight / fullHeight) * duration;\n  //   const previewDuration = (previewHeight / fullHeight) * duration;\n  //\n  //   wrapper!.style.position =\n  //     (progress / 100) * duration > minimizedDuration + previewDuration\n  //       ? 'absolute'\n  //       : 'relative';\n  //\n  //   header!.style.display =\n  //     (progress / 100) * duration > minimizedDuration + previewDuration\n  //       ? 'block'\n  //       : 'none';\n  // }\n}\n",
+            "properties": [
+                {
+                    "name": "height",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "optional": false,
+                    "description": "",
+                    "line": 21
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 163,
+            "methods": []
+        },
+        {
             "name": "Test",
             "id": "interface-Test-42b6f9e491cd23ca40c696ffe046a118",
             "file": "projects/ng-trust/src/lib/ng-trust.service.ts",
@@ -809,7 +882,7 @@
     "components": [
         {
             "name": "ButtonComponent",
-            "id": "component-ButtonComponent-2e9b3c0418645f18e455adfedb26d158",
+            "id": "component-ButtonComponent-cef16a6f23c8f4ee36e3a4f554efb5d0",
             "file": "projects/ng-trust/src/lib/modules/button/components/button/button.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -836,7 +909,7 @@
                     "defaultValue": "'var(--palette-9)'",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 24,
+                    "line": 28,
                     "type": "string"
                 },
                 {
@@ -844,7 +917,7 @@
                     "defaultValue": "true",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 23,
+                    "line": 27,
                     "type": "boolean"
                 }
             ],
@@ -864,7 +937,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 41,
+                    "line": 48,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -894,7 +967,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 36,
+                    "line": 41,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -912,12 +985,25 @@
                     ]
                 },
                 {
+                    "name": "ngOnDestroy",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 46,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        122
+                    ]
+                },
+                {
                     "name": "ngOnInit",
                     "args": [],
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 32,
+                    "line": 37,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -932,11 +1018,11 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import {\n  ChangeDetectionStrategy,\n  Component,\n  ElementRef,\n  Input,\n  OnChanges,\n  OnInit,\n  Renderer2,\n  SimpleChanges,\n} from '@angular/core';\nimport { ClassBinder } from '../../../../public-services';\n\n@Component({\n  // eslint-disable-next-line @angular-eslint/component-selector\n  selector: 'button[trust-button]',\n  templateUrl: './button.component.html',\n  styleUrls: ['./button.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  providers: [ClassBinder],\n  animations: [],\n})\nexport class ButtonComponent implements OnInit, OnChanges {\n  @Input() public fill: boolean = true;\n  @Input() public color: string = 'var(--palette-9)';\n\n  constructor(\n    private classBinder: ClassBinder,\n    private elementRef: ElementRef<HTMLElement>,\n    private renderer: Renderer2\n  ) {}\n\n  public ngOnInit(): void {\n    this.classBinder.bind('button');\n  }\n\n  public ngOnChanges({ fill, color }: SimpleChanges): void {\n    fill && this.classBinder.bindByBoolean('button--fill', fill.currentValue);\n    color && this.bindMainColorCSSVariable(color.currentValue);\n  }\n\n  private bindMainColorCSSVariable(color: string): void {\n    const element = this.elementRef.nativeElement;\n    this.renderer.setStyle(element, '--main-color', color, 1);\n  }\n}\n",
+            "sourceCode": "import {\n  ChangeDetectionStrategy,\n  Component,\n  ElementRef,\n  Host,\n  Input,\n  OnChanges,\n  OnDestroy,\n  OnInit,\n  Optional,\n  Renderer2,\n  SimpleChanges,\n} from '@angular/core';\nimport { ClassBinder } from '../../../../public-services';\nimport { ClickEffectDirective } from '../../../click-effect/directives/click-effect.directive';\n\n@Component({\n  // eslint-disable-next-line @angular-eslint/component-selector\n  selector: 'button[trust-button]',\n  templateUrl: './button.component.html',\n  styleUrls: ['./button.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  providers: [ClassBinder],\n  animations: [],\n})\nexport class ButtonComponent implements OnInit, OnChanges, OnDestroy {\n  @Input() public fill: boolean = true;\n  @Input() public color: string = 'var(--palette-9)';\n\n  constructor(\n    private classBinder: ClassBinder,\n    private elementRef: ElementRef<HTMLElement>,\n    private renderer: Renderer2,\n    @Host() @Optional() private clickEffect: ClickEffectDirective\n  ) {}\n\n  public ngOnInit(): void {\n    this.classBinder.bind('button');\n  }\n\n  public ngOnChanges({ fill, color }: SimpleChanges): void {\n    fill && this.classBinder.bindByBoolean('button--fill', fill.currentValue);\n    color && this.bindMainColorCSSVariable(color.currentValue);\n  }\n\n  public ngOnDestroy(): void {}\n\n  private bindMainColorCSSVariable(color: string): void {\n    const element = this.elementRef.nativeElement;\n    this.renderer.setStyle(element, '--main-color', color, 1);\n    this.clickEffect.trustClickEffectColor = color;\n  }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": [
                 {
-                    "data": "$padding-x: 2.25rem;\r\n$padding-y: 1rem;\r\n$font-size: 1rem;\r\n\r\n:host.button {\r\n  /**\r\n  Style clear\r\n   */\r\n  display: inline-flex;\r\n  background: unset;\r\n  border: unset;\r\n  font-family: inherit;\r\n  line-height: inherit;\r\n  color: inherit;\r\n  cursor: pointer;\r\n  position: relative;\r\n  font-weight: 500;\r\n  box-sizing: border-box;\r\n\r\n  --main-color: var(--success-1);\r\n\r\n  border-radius: $padding-y + $font-size;\r\n  padding: $padding-y $padding-x;\r\n  font-size: $font-size;\r\n\r\n  &:not(.button--fill) {\r\n    $border-width: 0.125rem;\r\n\r\n    border: $border-width solid var(--main-color);\r\n    padding: ($padding-y - $border-width) ($padding-x - $border-width);\r\n    color: var(--main-color);\r\n  }\r\n\r\n  &--fill {\r\n    background-color: var(--main-color);\r\n    color: var(--palette-1);\r\n\r\n    &::before {\r\n      display: block;\r\n      content: '';\r\n      position: absolute;\r\n      left: 0;\r\n      top: 0;\r\n      width: 100%;\r\n      height: 100%;\r\n      border-radius: inherit;\r\n      box-shadow: 0 6px 12px var(--main-color);\r\n      opacity: 0;\r\n      transition-duration: 0.25s;\r\n    }\r\n\r\n    &:hover:before {\r\n      opacity: 0.5;\r\n    }\r\n  }\r\n}\r\n\r\n",
+                    "data": "$padding-x: 2.25rem;\r\n$padding-y: 1rem;\r\n$font-size: 1rem;\r\n\r\n:host.button {\r\n  /**\r\n  Style clear\r\n   */\r\n  display: inline-flex;\r\n  background: unset;\r\n  border: unset;\r\n  font-family: inherit;\r\n  color: inherit;\r\n  cursor: pointer;\r\n  position: relative;\r\n  font-weight: 500;\r\n  box-sizing: border-box;\r\n  line-height: 1;\r\n  align-items: center;\r\n  justify-content: center;\r\n\r\n  --main-color: var(--success-1);\r\n\r\n  border-radius: $padding-y + $font-size;\r\n  padding: $padding-y $padding-y;\r\n  font-size: $font-size;\r\n  min-height: $padding-y * 2 + $font-size;\r\n  min-width: $padding-y * 2 + $font-size;\r\n\r\n  &:not(.button--fill) {\r\n    $border-width: 0.125rem;\r\n\r\n    border: $border-width solid var(--main-color);\r\n    padding: ($padding-y - $border-width) ($padding-y - $border-width);\r\n    color: var(--main-color);\r\n  }\r\n\r\n  &--fill {\r\n    background-color: var(--main-color);\r\n    color: var(--palette-1);\r\n  }\r\n\r\n  &::before {\r\n    display: block;\r\n    content: '';\r\n    position: absolute;\r\n    left: 0;\r\n    top: 0;\r\n    width: 100%;\r\n    height: 100%;\r\n    border-radius: inherit;\r\n    box-shadow: 0 6px 12px var(--main-color);\r\n    opacity: 0;\r\n    transition-duration: 0.25s;\r\n  }\r\n\r\n  &:hover:before {\r\n    opacity: 0.5;\r\n  }\r\n}\r\n\r\n.button {\r\n  &__label {\r\n    padding: 0 $padding-x - $padding-y;\r\n\r\n    @media (min-width: 1200px) and (max-width: 1399px) {\r\n      padding: 0 $padding-x - $padding-y + 1rem;\r\n    }\r\n\r\n    @media (min-width: 1400px) {\r\n      padding: 2rem;\r\n    }\r\n  }\r\n\r\n  &__label:empty {\r\n    display: none !important;\r\n  }\r\n\r\n  &__icon {\r\n  }\r\n\r\n  &__icon > svg{\r\n    width: 1rem;\r\n    height: 1rem;\r\n    fill: currentColor;\r\n    display: block;\r\n    transform: scale(2);\r\n  }\r\n}\r\n\r\n",
                     "styleUrl": "./button.component.scss"
                 }
             ],
@@ -964,9 +1050,15 @@
                         "type": "Renderer2",
                         "deprecated": false,
                         "deprecationMessage": ""
+                    },
+                    {
+                        "name": "clickEffect",
+                        "type": "ClickEffectDirective",
+                        "deprecated": false,
+                        "deprecationMessage": ""
                     }
                 ],
-                "line": 24,
+                "line": 28,
                 "jsdoctags": [
                     {
                         "name": "classBinder",
@@ -994,14 +1086,318 @@
                         "tagName": {
                             "text": "param"
                         }
+                    },
+                    {
+                        "name": "clickEffect",
+                        "type": "ClickEffectDirective",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
                     }
                 ]
             },
             "implements": [
                 "OnInit",
-                "OnChanges"
+                "OnChanges",
+                "OnDestroy"
             ],
-            "templateData": "<span>Przejdź dalej</span>\n"
+            "templateData": "<div class=\"button__label\"><ng-content></ng-content></div>\n<div class=\"button__icon\">\n  <svg id=\"Layer_1\" enable-background=\"new 0 0 128 128\" height=\"512\" viewBox=\"0 0 128 128\" width=\"512\" xmlns=\"http://www.w3.org/2000/svg\"><g><path d=\"m98.4 27.7c-12.6-12.7-33.1-12.7-45.8 0-11 11-12.6 28.2-3.9 41.1l-5.6 5.6c-2.8-.3-5.6.8-7.6 2.8l-15.8 15.6c-3.7 3.7-3.7 9.8 0 13.6s9.8 3.7 13.6 0l15.7-15.7c2-2 3-4.8 2.8-7.6l5.6-5.6c14.8 10.1 35 6.2 45-8.6 8.7-12.9 7.1-30.2-4-41.2zm-51.5 47.8 3.9-3.9c1.2 1.4 2.3 2.5 3.7 3.7l-3.9 3.9c-.8-1.5-2.1-2.8-3.7-3.7zm-.3 12.7-15.7 15.7c-2.4 2.4-6.2 2.4-8.6 0s-2.4-6.2 0-8.6l15.7-15.7c2.2-2.2 5.8-2.4 8.2-.3 2.7 2.2 2.9 6.4.4 8.9zm49.4-17.1c-10.2 10.1-26.2 11.3-37.8 2.7-2.2-1.7-4.2-3.6-5.9-5.9-9.6-12.8-6.9-30.9 5.9-40.5s30.9-6.9 40.5 5.9c8.6 11.5 7.4 27.6-2.7 37.8z\"/><path d=\"m92.5 33.6c-9.4-9.4-24.7-9.4-34.1 0s-9.4 24.7 0 34.1 24.7 9.4 34.1 0c4.5-4.5 7.1-10.6 7.1-17 0-6.5-2.5-12.6-7.1-17.1zm-2.4 31.6c-8 8-21.1 8-29.1 0s-8-21.1 0-29.1 21.1-8 29.1 0c3.9 3.9 6 9.1 6 14.6 0 5.4-2.2 10.6-6 14.5z\"/></g></svg></div>\n"
+        },
+        {
+            "name": "ExtendableMenuComponent",
+            "id": "component-ExtendableMenuComponent-51127f23be380814590cecae3edbb147",
+            "file": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "trust-extendable-menu",
+            "styleUrls": [
+                "./extendable-menu.component.scss"
+            ],
+            "styles": [],
+            "templateUrl": [
+                "./extendable-menu.component.html"
+            ],
+            "viewProviders": [],
+            "inputsClass": [
+                {
+                    "name": "preview",
+                    "defaultValue": "{\n    height: '120px',\n  }",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 52,
+                    "type": "PreviewConfiguration"
+                },
+                {
+                    "name": "state",
+                    "defaultValue": "'PREVIEW'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 50,
+                    "type": "ExtensionState"
+                }
+            ],
+            "outputsClass": [],
+            "propertiesClass": [
+                {
+                    "name": "contentEl",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "ElementRef<HTMLElement>",
+                    "optional": false,
+                    "description": "",
+                    "line": 33,
+                    "decorators": [
+                        {
+                            "name": "ViewChild",
+                            "stringifiedArguments": "'contentEl'"
+                        }
+                    ],
+                    "modifierKind": [
+                        122
+                    ]
+                },
+                {
+                    "name": "headerEl",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "ElementRef<HTMLElement>",
+                    "optional": false,
+                    "description": "",
+                    "line": 32,
+                    "decorators": [
+                        {
+                            "name": "ViewChild",
+                            "stringifiedArguments": "'headerEl'"
+                        }
+                    ],
+                    "modifierKind": [
+                        122
+                    ]
+                },
+                {
+                    "name": "wrapperEl",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "ElementRef<HTMLElement>",
+                    "optional": false,
+                    "description": "",
+                    "line": 31,
+                    "decorators": [
+                        {
+                            "name": "ViewChild",
+                            "stringifiedArguments": "'wrapperEl'"
+                        }
+                    ],
+                    "modifierKind": [
+                        122
+                    ]
+                }
+            ],
+            "methodsClass": [
+                {
+                    "name": "addToTimeline",
+                    "args": [
+                        {
+                            "name": "timeline",
+                            "type": "AnimeTimelineInstance",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        },
+                        {
+                            "name": "params",
+                            "type": "AnimeAnimParams",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 132,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        120
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "timeline",
+                            "type": "AnimeTimelineInstance",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        },
+                        {
+                            "name": "params",
+                            "type": "AnimeAnimParams",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "changeStateToMinimized",
+                    "args": [
+                        {
+                            "name": "immediately",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "defaultValue": "false"
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 62,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        120
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "immediately",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "defaultValue": "false",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ngAfterViewInit",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 58,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        122
+                    ]
+                },
+                {
+                    "name": "transitionFromFullToPreview",
+                    "args": [
+                        {
+                            "name": "immediately",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "defaultValue": "false"
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 106,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        120
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "immediately",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "defaultValue": "false",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transitionFromPreviewToFull",
+                    "args": [
+                        {
+                            "name": "immediately",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "defaultValue": "false"
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 66,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        120
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "immediately",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "defaultValue": "false",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import {\n  AfterViewInit,\n  ChangeDetectionStrategy,\n  Component,\n  ElementRef,\n  Input,\n  ViewChild,\n} from '@angular/core';\nimport anime, { AnimeAnimParams, AnimeTimelineInstance } from 'animejs';\n\ntype ExtensionState = 'MINIMIZED' | 'PREVIEW' | 'FULL';\n\ninterface ExtendableElements {\n  parentElement: HTMLElement;\n  wrapperElement: HTMLElement;\n  headerElement: HTMLElement;\n  contentElement: HTMLElement;\n}\n\ninterface PreviewConfiguration {\n  height: string;\n}\n\n@Component({\n  selector: 'trust-extendable-menu',\n  templateUrl: './extendable-menu.component.html',\n  styleUrls: ['./extendable-menu.component.scss'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class ExtendableMenuComponent implements AfterViewInit {\n  @ViewChild('wrapperEl') public wrapperEl!: ElementRef<HTMLElement>;\n  @ViewChild('headerEl') public headerEl!: ElementRef<HTMLElement>;\n  @ViewChild('contentEl') public contentEl!: ElementRef<HTMLElement>;\n\n  public get elements(): ExtendableElements {\n    const parentElement = this.wrapperEl.nativeElement.parentElement;\n\n    if (!parentElement) {\n      throw new Error('There is no parent element!');\n    }\n\n    return {\n      parentElement,\n      wrapperElement: this.wrapperEl.nativeElement,\n      headerElement: this.headerEl.nativeElement,\n      contentElement: this.contentEl.nativeElement,\n    };\n  }\n\n  @Input() public state: ExtensionState = 'PREVIEW';\n\n  @Input() public preview: PreviewConfiguration = {\n    height: '120px',\n  };\n\n  constructor() {}\n\n  public ngAfterViewInit(): void {\n    this.transitionFromPreviewToFull(false);\n  }\n\n  private changeStateToMinimized(immediately: boolean = false): void {\n    const {} = this.elements;\n  }\n\n  private transitionFromPreviewToFull(immediately: boolean = false): void {\n    const { parentElement, wrapperElement, headerElement, contentElement } =\n      this.elements;\n\n    headerElement.style.display = 'none';\n\n    const parentDOMRect = parentElement.getBoundingClientRect();\n    const wrapperDOMRect = wrapperElement.getBoundingClientRect();\n    const contentDOMRect = contentElement.getBoundingClientRect();\n\n    headerElement.style.display = 'block';\n\n    const headerDOMRect = headerElement.getBoundingClientRect();\n\n    wrapperElement.style.position = 'absolute';\n    wrapperElement.style.top = '0px';\n\n    const contentTopOffset =\n      contentDOMRect.top - headerDOMRect.height - parentDOMRect.top;\n\n    const timeline = anime.timeline({\n      duration: immediately ? 0 : 1000,\n      easing: 'easeOutQuad',\n    });\n\n    this.addToTimeline(timeline, {\n      targets: wrapperElement,\n    });\n\n    this.addToTimeline(timeline, {\n      targets: headerElement,\n      translateY: ['-100%', '0%'],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: contentElement,\n      top: [`${contentTopOffset}px`, `0px`],\n    });\n  }\n\n  private transitionFromFullToPreview(immediately: boolean = false): void {\n    const { wrapperElement, headerElement, contentElement } = this.elements;\n\n    const headerDOMRect = headerElement.getBoundingClientRect();\n\n    const timeline = anime.timeline({\n      duration: immediately ? 0 : 5000,\n      easing: 'easeOutQuad',\n    });\n\n    this.addToTimeline(timeline, {\n      targets: wrapperElement,\n      height: ['600px', this.preview.height],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: headerElement,\n      translateY: ['0%', '-100%'],\n    });\n\n    this.addToTimeline(timeline, {\n      targets: contentElement,\n      top: ['0px', `${headerDOMRect.height}px`],\n    });\n  }\n\n  private addToTimeline(\n    timeline: AnimeTimelineInstance,\n    params: AnimeAnimParams\n  ): void {\n    timeline.add(params, 0);\n  }\n\n  // public ngOnInit(): void {\n  //   const element = this.wrapperEl.nativeElement;\n  //   const rect = element.getBoundingClientRect();\n  //\n  //   const mouseup$ = fromEvent(window, 'mouseup');\n  //\n  //   let timeline: AnimeTimelineInstance | null = null;\n  //\n  //   let initialY: number | null = null;\n  //\n  //   let progress: number = 0;\n  //\n  //   fromEvent(element, 'mousedown')\n  //     .pipe(\n  //       tap((event) => (initialY = (event as MouseEvent).y)),\n  //       switchMap((event) =>\n  //         merge(\n  //           of(event),\n  //           fromEvent(window, 'mousemove').pipe(takeUntil(mouseup$)),\n  //           mouseup$\n  //         )\n  //       )\n  //     )\n  //     .subscribe((e) => {\n  //       const event = e as MouseEvent;\n  //       event.preventDefault();\n  //\n  //       if (event.type === 'mousedown') {\n  //         progress = timeline?.progress || 0;\n  //         timeline = null;\n  //         timeline = this.createTimeline();\n  //       }\n  //\n  //       const y = event.y - (initialY || 0);\n  //       const yPercentage = (y - rect.y) / 550;\n  //\n  //       const yWithProgress = Math.min(yPercentage + progress / 100, 1);\n  //\n  //       console.log(y, yPercentage, yWithProgress);\n  //\n  //       timeline?.seek(yWithProgress * 1000);\n  //       this.updateFunction(yWithProgress * 100);\n  //\n  //       if (event.type === 'mouseup') {\n  //         initialY = null;\n  //       }\n  //     });\n  //\n  //   anime({});\n  // }\n  //\n  // private createTimeline(duration: number = 1000): AnimeTimelineInstance {\n  //   const minimizedHeight = 30;\n  //   const previewHeight = 120;\n  //   const fullHeight = 600;\n  //\n  //   const minimizedDuration = (minimizedHeight / fullHeight) * duration;\n  //   const previewDuration = (previewHeight / fullHeight) * duration;\n  //   const fullDuration =\n  //     ((fullHeight - minimizedHeight - previewHeight) / fullHeight) * duration;\n  //\n  //   const wrapper = this.wrapperEl.nativeElement;\n  //   const header = wrapper.querySelector<HTMLElement>('[role=header]');\n  //   const content = wrapper.querySelector<HTMLElement>('[role=content]');\n  //\n  //   header!.style.display = 'block';\n  //   const headerDOMRect = header!.getBoundingClientRect();\n  //   header!.style.display = 'none';\n  //   const contentDOMRect = content!.getBoundingClientRect();\n  //   const parent = wrapper.parentElement;\n  //   const parentDOMRect = parent!.getBoundingClientRect();\n  //\n  //   const timeline = anime.timeline({\n  //     duration,\n  //     easing: 'linear',\n  //     autoplay: false,\n  //     update: (event) => this.updateFunction(event.progress),\n  //   });\n  //\n  //   timeline.add(\n  //     {\n  //       targets: wrapper,\n  //       top: [\n  //         {\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0px',\n  //           delay: minimizedDuration + previewDuration,\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   timeline.add(\n  //     {\n  //       targets: header,\n  //       translateY: [\n  //         {\n  //           value: '-100%',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0%',\n  //           duration: fullDuration,\n  //           delay: previewDuration + minimizedDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   timeline.add(\n  //     {\n  //       targets: content,\n  //       top: [\n  //         {\n  //           value: '0px',\n  //           delay: minimizedDuration + previewDuration,\n  //         },\n  //         {\n  //           value:\n  //             contentDOMRect.top -\n  //             headerDOMRect.height -\n  //             parentDOMRect.top +\n  //             'px',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '0px',\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //       height: [\n  //         {\n  //           value: '40px',\n  //           duration: 0,\n  //         },\n  //         {\n  //           value: '120px',\n  //           duration: minimizedDuration + previewDuration,\n  //         },\n  //         {\n  //           value: '600px',\n  //           duration: fullDuration,\n  //         },\n  //       ],\n  //     },\n  //     0\n  //   );\n  //\n  //   return timeline;\n  // }\n  //\n  // private updateFunction(progress: number): void {\n  //   console.log('progress', progress);\n  //\n  //   const wrapper = this.wrapperEl.nativeElement;\n  //   const header = wrapper.querySelector<HTMLElement>('[role=header]');\n  //\n  //   const duration = 1000;\n  //\n  //   const minimizedHeight = 30;\n  //   const previewHeight = 120;\n  //   const fullHeight = 600;\n  //\n  //   const minimizedDuration = (minimizedHeight / fullHeight) * duration;\n  //   const previewDuration = (previewHeight / fullHeight) * duration;\n  //\n  //   wrapper!.style.position =\n  //     (progress / 100) * duration > minimizedDuration + previewDuration\n  //       ? 'absolute'\n  //       : 'relative';\n  //\n  //   header!.style.display =\n  //     (progress / 100) * duration > minimizedDuration + previewDuration\n  //       ? 'block'\n  //       : 'none';\n  // }\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": [
+                {
+                    "data": "[role='wrapper'] {\n  display: block;\n  width: 320px;\n  height: 560px;\n  overflow: hidden;\n}\n\n:host {\n  position: relative;\n  display: block;\n  overflow: hidden;\n  min-height: 600px;\n}\n\n[role='header'] {\n  position: relative;\n  display: block;\n  width: 100%;\n  height: 70px;\n  opacity: 0.5;\n  background-color: red;\n}\n\n[role='content'] {\n  position: relative;\n  display: block;\n  overflow: hidden;\n  height: 100%;\n  transform-origin: bottom center;\n  background-color: green;\n}\n\n.xd {\n  display: block;\n  width: 320px;\n  height: 50px;\n  background-color: hotpink;\n}\n",
+                    "styleUrl": "./extendable-menu.component.scss"
+                }
+            ],
+            "stylesData": "",
+            "constructorObj": {
+                "name": "constructor",
+                "description": "",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "args": [],
+                "line": 54
+            },
+            "implements": [
+                "AfterViewInit"
+            ],
+            "accessors": {
+                "elements": {
+                    "name": "elements",
+                    "getSignature": {
+                        "name": "elements",
+                        "type": "",
+                        "returnType": "ExtendableElements",
+                        "line": 35
+                    }
+                }
+            },
+            "templateData": "<div class=\"xd\"></div>\n<div #wrapperEl role=\"wrapper\">\n  <div #headerEl role=\"header\">\n    Test\n  </div>\n  <div #contentEl role=\"content\">\n    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin sodales molestie tincidunt. Etiam cursus velit non\n    ipsum pellentesque, a scelerisque quam vulputate. Mauris consequat diam et mi mollis gravida. Phasellus lorem sem,\n    lacinia eu mollis suscipit, malesuada vehicula ligula. Integer ut tincidunt magna.\n  </div>\n</div>\n"
         },
         {
             "name": "NgTrustComponent",
@@ -1434,6 +1830,46 @@
             ]
         },
         {
+            "name": "ExtendableMenuModule",
+            "id": "module-ExtendableMenuModule-c79e1955b7143a010cbd9136acd32a72",
+            "description": "",
+            "deprecationMessage": "",
+            "deprecated": false,
+            "file": "projects/ng-trust/src/lib/modules/extendable-menu/extendable-menu.module.ts",
+            "methods": [],
+            "sourceCode": "import { NgModule } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { ExtendableMenuComponent } from './components/extendable-menu/extendable-menu.component';\n\n\n\n@NgModule({\n  declarations: [\n    ExtendableMenuComponent\n  ],\n  imports: [\n    CommonModule\n  ]\n})\nexport class ExtendableMenuModule { }\n",
+            "children": [
+                {
+                    "type": "providers",
+                    "elements": []
+                },
+                {
+                    "type": "declarations",
+                    "elements": [
+                        {
+                            "name": "ExtendableMenuComponent"
+                        }
+                    ]
+                },
+                {
+                    "type": "imports",
+                    "elements": []
+                },
+                {
+                    "type": "exports",
+                    "elements": []
+                },
+                {
+                    "type": "bootstrap",
+                    "elements": []
+                },
+                {
+                    "type": "classes",
+                    "elements": []
+                }
+            ]
+        },
+        {
             "name": "NgTrustModule",
             "id": "module-NgTrustModule-c5acc2df6a3645f219cf69d9f4960ef2",
             "description": "",
@@ -1538,6 +1974,16 @@
                 "name": "primary",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
+                "file": "stories/trust/extendable-menu.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "",
+                "defaultValue": "template.bind({})"
+            },
+            {
+                "name": "primary",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
                 "file": "stories/trust/button.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
@@ -1567,11 +2013,21 @@
                 "name": "template",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
+                "file": "stories/trust/extendable-menu.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story<ExtendableMenuComponent>",
+                "defaultValue": "(\n  args: ExtendableMenuComponent\n) => ({\n  props: args,\n})"
+            },
+            {
+                "name": "template",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
                 "file": "stories/trust/button.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Story<ButtonComponent>",
-                "defaultValue": "(args: ButtonComponent) => ({\n  props: args,\n  template: `\n    <button trust-button [fill]=\"fill\" [color]=\"color\" trustClickEffect></button>\n  `,\n})"
+                "defaultValue": "(args: ButtonComponent) => ({\n  props: args,\n  template: `\n    <button trust-button [fill]=\"fill\" [color]=\"color\" trustClickEffect>{{test}}</button>\n  `,\n})"
             },
             {
                 "name": "Template",
@@ -1585,7 +2041,19 @@
             }
         ],
         "functions": [],
-        "typealiases": [],
+        "typealiases": [
+            {
+                "name": "ExtensionState",
+                "ctype": "miscellaneous",
+                "subtype": "typealias",
+                "rawtype": "\"MINIMIZED\" | \"PREVIEW\" | \"FULL\"",
+                "file": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "kind": 183
+            }
+        ],
         "enumerations": [],
         "groupedVariables": {
             "projects/ng-trust/src/test.ts": [
@@ -1609,6 +2077,28 @@
                     "type": "literal type"
                 }
             ],
+            "stories/trust/extendable-menu.stories.ts": [
+                {
+                    "name": "primary",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "stories/trust/extendable-menu.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "template.bind({})"
+                },
+                {
+                    "name": "template",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "stories/trust/extendable-menu.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story<ExtendableMenuComponent>",
+                    "defaultValue": "(\n  args: ExtendableMenuComponent\n) => ({\n  props: args,\n})"
+                }
+            ],
             "stories/trust/button.stories.ts": [
                 {
                     "name": "primary",
@@ -1628,7 +2118,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Story<ButtonComponent>",
-                    "defaultValue": "(args: ButtonComponent) => ({\n  props: args,\n  template: `\n    <button trust-button [fill]=\"fill\" [color]=\"color\" trustClickEffect></button>\n  `,\n})"
+                    "defaultValue": "(args: ButtonComponent) => ({\n  props: args,\n  template: `\n    <button trust-button [fill]=\"fill\" [color]=\"color\" trustClickEffect>{{test}}</button>\n  `,\n})"
                 }
             ],
             "stories/trust/side-menu.stories.ts": [
@@ -1656,7 +2146,21 @@
         },
         "groupedFunctions": {},
         "groupedEnumerations": {},
-        "groupedTypeAliases": {}
+        "groupedTypeAliases": {
+            "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts": [
+                {
+                    "name": "ExtensionState",
+                    "ctype": "miscellaneous",
+                    "subtype": "typealias",
+                    "rawtype": "\"MINIMIZED\" | \"PREVIEW\" | \"FULL\"",
+                    "file": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "kind": 183
+                }
+            ]
+        }
     },
     "routes": [],
     "coverage": {
@@ -1669,7 +2173,7 @@
                 "linktype": "component",
                 "name": "ButtonComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/7",
+                "coverageCount": "0/8",
                 "status": "low"
             },
             {
@@ -1688,6 +2192,33 @@
                 "name": "TouchRecognizer",
                 "coveragePercent": 0,
                 "coverageCount": "0/4",
+                "status": "low"
+            },
+            {
+                "filePath": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "ExtendableMenuComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/12",
+                "status": "low"
+            },
+            {
+                "filePath": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "ExtendableElements",
+                "coveragePercent": 0,
+                "coverageCount": "0/5",
+                "status": "low"
+            },
+            {
+                "filePath": "projects/ng-trust/src/lib/modules/extendable-menu/components/extendable-menu/extendable-menu.component.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "PreviewConfiguration",
+                "coveragePercent": 0,
+                "coverageCount": "0/2",
                 "status": "low"
             },
             {
@@ -1803,6 +2334,26 @@
             },
             {
                 "filePath": "stories/trust/button.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "template",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "stories/trust/extendable-menu.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "primary",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "stories/trust/extendable-menu.stories.ts",
                 "type": "variable",
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
